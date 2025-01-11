@@ -1,3 +1,3 @@
 ﻿using NetworkProgramming.Lessons;
 
-new Lesson1().Run();
+new Lesson2().Run();
