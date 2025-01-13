@@ -39,8 +39,7 @@ namespace NetworkProgramming.Lessons
             Socket clientSocket = serverSocket.Accept();
             Console.WriteLine("Client connected!");
 
-            Thread receiveThread = new Thread(() => ReceiveMessage(clientSocket));
-            receiveThread.Start();
+            Task.Run(() => ReceiveMessage(clientSocket));
 
             SendMessage(clientSocket);
         }
@@ -50,9 +49,8 @@ namespace NetworkProgramming.Lessons
             Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             clientSocket.Connect(new IPEndPoint(IPAddress.Loopback, 12345));
             Console.WriteLine("Connected to the server!");
-
-            Thread receiveThread = new Thread(() => ReceiveMessage(clientSocket));
-            receiveThread.Start();
+;
+            Task.Run(() => ReceiveMessage(clientSocket));
 
             SendMessage(clientSocket);
         }
