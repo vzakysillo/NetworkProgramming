@@ -1,3 +1,5 @@
 ﻿using NetworkProgramming.Lessons;
+using System.Net;
 
-new Lesson3().Run();
+LocalChat localChat = new LocalChat();
+localChat.Run();
