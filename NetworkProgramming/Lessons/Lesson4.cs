@@ -70,13 +70,13 @@ namespace NetworkProgramming.Lessons
 
     }
 
-    class Message
+    class TMessage
     {
         public IPAddress IP{  get; set; }
         public string Text { get; set; }
         public DateTime Time { get; set; }
 
-        public Message(IPAddress ip, string text, DateTime time)
+        public TMessage(IPAddress ip, string text, DateTime time)
         {
             IP = ip;
             Text = text;
@@ -97,7 +97,7 @@ namespace NetworkProgramming.Lessons
         private IPAddress broadcastAddress = IPAddress.Parse("255.255.255.255");
         private IPAddress myip = IPAddress.Parse("192.168.0.173");
 
-        List<Message> messages = new List<Message>();
+        List<TMessage> messages = new List<TMessage>();
         string _input = "";
 
         public LocalChat()
@@ -114,7 +114,7 @@ namespace NetworkProgramming.Lessons
                 IPEndPoint endPoint = new IPEndPoint(targetIp, port);
                 udpClient.Send(data, data.Length, endPoint);
 
-                messages.Add(new Message(myip, message, DateTime.Now));
+                messages.Add(new TMessage(myip, message, DateTime.Now));
             }
             catch (Exception ex)
             {
@@ -129,7 +129,7 @@ namespace NetworkProgramming.Lessons
                 byte[] data = Encoding.UTF8.GetBytes(message);
                 IPEndPoint endPoint = new IPEndPoint(broadcastAddress, port);
                 udpClient.Send(data, data.Length, endPoint);
-                messages.Add(new Message(broadcastAddress, message, DateTime.Now));
+                messages.Add(new TMessage(broadcastAddress, message, DateTime.Now));
             }
             catch (Exception ex)
             {
@@ -146,7 +146,7 @@ namespace NetworkProgramming.Lessons
                 {
                     byte[] receivedData = udpClient.Receive(ref endPoint);
                     string message = Encoding.UTF8.GetString(receivedData);
-                    messages.Add(new Message(endPoint.Address, message, DateTime.Now));
+                    messages.Add(new TMessage(endPoint.Address, message, DateTime.Now));
                 }
             }
             catch (Exception ex)
@@ -164,7 +164,7 @@ namespace NetworkProgramming.Lessons
             Console.Clear();
 
             Console.SetCursorPosition(0, 0);
-            foreach (Message i in messages)
+            foreach (TMessage i in messages)
             {
                 Console.WriteLine(i);
             }
