@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Json;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace NetworkProgramming.Lessons
@@ -11,7 +13,9 @@ namespace NetworkProgramming.Lessons
     public class Message
     {
         public string MessageHeader { get; set; } = "";
+
         public string m { get; set; } = "";
+
         public DateTime DateStamp { get; set; }
     }
 
@@ -67,11 +71,11 @@ namespace NetworkProgramming.Lessons
             _client.DefaultRequestHeaders.Remove("destinationId");
             _client.DefaultRequestHeaders.Add("destinationId", destinationId);
 
-            var messageObject = new
+            Message messageObject = new Message
             {
-                messageHeader = "Personal Message",
-                message,
-                dateStamp = DateTime.Now
+                MessageHeader = "Personal Message",
+                m = message,
+                DateStamp = DateTime.Now
             };
 
             var response = await _client.PostAsJsonAsync("api/v1/objects", messageObject);
@@ -95,46 +99,57 @@ namespace NetworkProgramming.Lessons
 
         public async Task ReadMessagesAsync()
         {
-            var response = await _client.GetAsync("api/v1/objects");
-
-            if (!response.IsSuccessStatusCode)
+            foreach (var user in _users)
             {
-                Console.WriteLine($"Failed to fetch messages: {response.StatusCode}");
-                return;
-            }
+                _client.DefaultRequestHeaders.Remove("destinationId");
+                _client.DefaultRequestHeaders.Add("destinationId", user.Value);
 
-            var content = await response.Content.ReadAsStringAsync();
-            var messages = JsonSerializer.Deserialize<List<Message>>(content);
+                var response = await _client.GetAsync("api/v1/objects?take=100");
 
-            if (messages == null || messages.Count == 0)
-            {
-                Console.WriteLine("No messages received.");
-                return;
-            }
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"Failed to fetch messages for {user.Key}: {response.StatusCode}");
+                    continue;
+                }
 
-            Console.WriteLine("Received messages:");
-            foreach (var message in messages)
-            {
-                Console.WriteLine($"[{message.DateStamp}] {message.MessageHeader}: {message.m}");
+                var content = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                };
+
+                var messages = JsonSerializer.Deserialize<List<Message>>(content, options);
+
+                if (messages == null || messages.Count == 0)
+                {
+                    Console.WriteLine($"No messages received from {user.Key}.");
+                    continue;
+                }
+
+                Console.WriteLine($"Received messages from {user.Key}:");
+                foreach (Message message in messages)
+                {
+                    Console.WriteLine($"[{message.DateStamp}] {message.MessageHeader}: {message.m}");
+                }
             }
         }
     }
 
-
     static public class Lesson5
     {
         public static Dictionary<string, string> users = new Dictionary<string, string>
-        {
-            { "serhiy.lakas", "2a2c2a72-0ecb-4369-8e1e-c84be1f201ee" },
-            { "Kostyikevych.Vitaliy", "76efc553-f68d-4aa9-b1af-c25a6dfb0390" },
-            { "Shalovilo.Bogdan", "1134a432-9005-4232-b0e9-8ead9cf63c0b" },
-            { "Nikolaichyk.Vlad", "fdb887f6-61ee-48b9-992f-6fff53207a3c" },
-            { "Andryii.Rabosh", "7e23a154-09d2-4ab8-b23a-4ca24181e1ef" },
-            { "Iskachov.Bohdan", "b3f1b17d-8caa-4c74-87ab-b53c67788e98" },
-            { "Mikhnevych.Danylo", "c8a41470-25d3-4f2e-9dc6-1cb9955587d1" },
-            { "Zakusilo.Vitaliy", "b862de90-f671-4f96-a8aa-154841d18b95" },
-            { "Bobrovnitskiy.Matviy", "b934d65c-83e7-4f74-834e-94fc12004ad7" }
-        };
+         {
+             { "serhiy.lakas", "2a2c2a72-0ecb-4369-8e1e-c84be1f201ee" },
+             { "Kostyikevych.Vitaliy", "76efc553-f68d-4aa9-b1af-c25a6dfb0390" },
+             { "Shalovilo.Bogdan", "1134a432-9005-4232-b0e9-8ead9cf63c0b" },
+             { "Nikolaichyk.Vlad", "fdb887f6-61ee-48b9-992f-6fff53207a3c" },
+             { "Andryii.Rabosh", "7e23a154-09d2-4ab8-b23a-4ca24181e1ef" },
+             { "Iskachov.Bohdan", "b3f1b17d-8caa-4c74-87ab-b53c67788e98" },
+             { "Mikhnevych.Danylo", "c8a41470-25d3-4f2e-9dc6-1cb9955587d1" },
+             { "Zakusilo.Vitaliy", "b862de90-f671-4f96-a8aa-154841d18b95" }, //XCuiemn762
+             { "Bobrovnitskiy.Matviy", "b934d65c-83e7-4f74-834e-94fc12004ad7" }
+         };
 
         public static async Task Run()
         {
@@ -172,6 +187,7 @@ namespace NetworkProgramming.Lessons
                         Console.WriteLine("\tsend [username] [message] - Send a personal message.");
                         Console.WriteLine("\tbroadcast [message] - Send a message to all users.");
                         Console.WriteLine("\tread - Read all received messages.");
+                        Console.WriteLine("\tclear - clear the sreen.");
                         Console.WriteLine("\texit - Exit the chat.");
                         break;
 
@@ -209,6 +225,10 @@ namespace NetworkProgramming.Lessons
                         await chatService.ReadMessagesAsync();
                         break;
 
+                    case "clear":
+                        Console.Clear();
+                        break;
+
                     case "exit":
                         Console.WriteLine("Goodbye!");
                         return;
@@ -220,5 +240,4 @@ namespace NetworkProgramming.Lessons
             }
         }
     }
-
 }
