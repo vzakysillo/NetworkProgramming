@@ -67,16 +67,24 @@ namespace NetworkProgramming.Lessons
                 Console.WriteLine($"User {username} not found.");
                 return;
             }
-
             _client.DefaultRequestHeaders.Remove("destinationId");
             _client.DefaultRequestHeaders.Add("destinationId", destinationId);
 
-            Message messageObject = new Message
+            //не рабоче, але при ньому не крашить
+            var messageObject = new 
             {
-                MessageHeader = "Personal Message",
-                m = message,
-                DateStamp = DateTime.Now
+                messageHeader = "Personal Message",
+                message,
+                dateStamp = DateTime.Now
             };
+
+            //крашить
+            //var messageObject = new 
+            //{
+            //    messageHeader = "Personal Message",
+            //    m = message,
+            //    dateStamp = DateTime.Now
+            //};
 
             var response = await _client.PostAsJsonAsync("api/v1/objects", messageObject);
             if (response.IsSuccessStatusCode)
@@ -123,15 +131,15 @@ namespace NetworkProgramming.Lessons
 
                 if (messages == null || messages.Count == 0)
                 {
-                    Console.WriteLine($"No messages received from {user.Key}.");
                     continue;
                 }
 
-                Console.WriteLine($"Received messages from {user.Key}:");
+                Console.WriteLine($"\tReceived messages from {user.Key}:");
                 foreach (Message message in messages)
                 {
-                    Console.WriteLine($"[{message.DateStamp}] {message.MessageHeader}: {message.m}");
+                    Console.WriteLine($"[{message.DateStamp}] [{message.MessageHeader}] {message.m}");
                 }
+                Console.WriteLine();
             }
         }
     }
